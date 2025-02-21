@@ -2,6 +2,7 @@
     "apiUrl": "https://e2-testinstance-020223-dxhvj2y-ajsvox2etymgk.ap-4.magentosite.cloud/graphql",
     "authKey": "your-auth-key",
     "siteId": "your-site-id",
-    "enableCaching": true
+    "enableCaching": true,
+    "data":"https://e2-testinstance-020223-dxhvj2y-ajsvox2etymgk.ap-4.magentosite.cloud/graphql"
   }
   
