@@ -87,3 +87,15 @@
         justify-content: flex-start;
     }
 }
+.product-teaser-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Three equal columns */
+    gap: 20px; /* Space between columns */
+  }
+  
+  .product-teaser-wrapper {
+    background: #fff; /* Optional: adds a background */
+    padding: 10px; /* Optional: adds some spacing */
+    border-radius: 5px; /* Optional: smooth edges */
+  }
+  
