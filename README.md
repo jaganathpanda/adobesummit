@@ -19,7 +19,7 @@ Additionally, you need to have the following modules and customizations installe
 1. magento/module-page-builder-product-recommendations: Commerce module required for PRex Widget
 1. magento/module-visual-product-recommendations: Commerce module required for PRex Widget
 <!-- 1. TODO: Add further prereqs.  -->
-
+ 
 ## Documentation
 
 Before using the boilerplate, we recommend you to go through the documentation on https://www.aem.live/docs/ and more specifically:
