@@ -23,6 +23,36 @@ import {
 } from './aem.js';
 import { trackHistory } from './commerce.js';
 import initializeDropins from './initializers/index.js';
+import {getCustomerInfo} from '../blocks/targeted-block/graphql.js'
+
+// Function to push user information into Adobe Data Layer
+async function pushUserDataToDataLayer() {
+  try {
+    const userInfo = await getCustomerInfo(); // Fetch user data from GraphQL
+
+    if (userInfo) {
+      window.adobeDataLayer.push({
+        event: 'user-info',
+        userContext: {
+          firstname: userInfo.firstname,
+          lastname: userInfo.lastname,
+          userEmail: userInfo.email,
+          userId:encodeBase64Email(userInfo.email)
+        },
+      });
+
+      console.log('User data pushed to Adobe Data Layer:', userInfo);
+    } else {
+      console.warn('No user data found.');
+    }
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+  }
+}
+function encodeBase64Email(email) {
+  return btoa(email);
+}
+
 
 const AUDIENCES = {
   mobile: () => window.innerWidth < 600,
@@ -181,6 +211,9 @@ async function loadEager(doc) {
   await initializeDropins();
 
   window.adobeDataLayer = window.adobeDataLayer || [];
+
+  // Push user information to Adobe Data Layer
+  await pushUserDataToDataLayer();
 
   let pageType = 'CMS';
   if (document.body.querySelector('main .product-details')) {

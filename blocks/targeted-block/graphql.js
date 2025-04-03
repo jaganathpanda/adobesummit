@@ -10,6 +10,47 @@ const addCartHeaders = async () => {
   });
 };
 
+const getCustomerInfo = async () => {
+  try {
+    await addCartHeaders(); // Ensure headers are set
+
+    const response = await fetchGraphQl(
+      `query 
+        {
+          customer {
+            id
+            firstname
+            lastname
+            suffix
+            email
+            addresses {
+              firstname
+              lastname
+              street
+              city
+              region {
+                region_code
+                region
+              }
+              postcode
+              country_code
+              telephone
+            }
+          }
+        }
+      `,
+      {
+        method: 'GET',
+      },
+    );
+
+    return response.data?.customer || null; // Return customer object or null if not found
+  } catch (error) {
+    console.error('Could not retrieve customer information', error);
+  }
+  return null;
+};
+
 const getCustomerGroups = async () => {
   try {
     addCartHeaders();
@@ -118,4 +159,5 @@ export {
   getCustomerSegments,
   getCartRules,
   getCatalogPriceRules,
+  getCustomerInfo,
 };
