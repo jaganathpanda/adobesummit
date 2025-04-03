@@ -117,7 +117,7 @@ const getCartRules = async (cartId) => {
     );
     return response.data || [];
   } catch (error) {
-    console.error('Could not retrieve customer cart rules', error);
+    console.error('Could not retrieve customer cart rules', error); 
   }
   return [];
 };
