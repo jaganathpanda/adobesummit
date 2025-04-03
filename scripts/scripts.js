@@ -43,6 +43,11 @@ async function pushUserDataToDataLayer() {
 
       console.log('User data pushed to Adobe Data Layer:', userInfo);
     } else {
+      window.adobeDataLayer.push({
+        event: 'user-info',
+        userContext: {
+        },
+      });
       console.warn('No user data found.');
     }
   } catch (error) {
