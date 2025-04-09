@@ -12,43 +12,66 @@ const addCartHeaders = async () => {
 
 const getCustomerInfo = async () => {
   try {
-    await addCartHeaders(); // Ensure headers are set
+    // Check if userInfo is already stored in sessionStorage
+    const storedUserInfo = sessionStorage.getItem("userInfo");
 
+    if (storedUserInfo) {
+      return JSON.parse(storedUserInfo); // Return cached data
+    }
+
+    // Ensure headers are set before making a request
+    await addCartHeaders(); 
+
+    // Fetch customer info from GraphQL
     const response = await fetchGraphQl(
-      `query 
-        {
-          customer {
-            id
+      `query {
+        customer {
+          id
+          firstname
+          lastname
+          suffix
+          email
+          date_of_birth
+          gender
+          addresses {
             firstname
             lastname
-            suffix
-            email
-            addresses {
-              firstname
-              lastname
-              street
-              city
-              region {
-                region_code
-                region
-              }
-              postcode
-              country_code
-              telephone
+            street
+            city
+            region {
+              region_code
+              region
             }
+            postcode
+            country_code
+            telephone
+          }
+          custom_attributes {
+            ... on AttributeValue {
+              code
+              value
+            }
+            code
           }
         }
-      `,
+      }`,
       {
         method: 'GET',
-      },
+      }
     );
+    const customerData = response.data?.customer || null;
 
-    return response.data?.customer || null; // Return customer object or null if not found
+    // Store fetched data in sessionStorage if it exists
+    if (customerData) {
+      sessionStorage.setItem("userInfo", JSON.stringify(customerData));
+    }
+
+    return customerData; // Return customer data
+
   } catch (error) {
     console.error('Could not retrieve customer information', error);
+    return null;
   }
-  return null;
 };
 
 const getCustomerGroups = async () => {

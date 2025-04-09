@@ -25,6 +25,89 @@ import { trackHistory } from './commerce.js';
 import initializeDropins from './initializers/index.js';
 import {getCustomerInfo} from '../blocks/targeted-block/graphql.js'
 
+(function initAdobePageTracking() {
+  if (window.adobeDataLayer) {
+    adobeDataLayer.push(function () {
+      // 1. Checkout - user-info triggers all global + checkout
+      adobeDataLayer.addEventListener('user-info', function () {
+        console.log('user-info event detected in adobeDataLayer');
+        triggerAdobeEvent("setGlobal1");
+        //triggerAdobeEvent("checkout20");
+        triggerAdobeEvent("event50");
+      });
+
+      // 2. Handle specific page event tracking
+      handlePageEvent({
+        selector: '.product-details',
+        eventName: 'product-page-view',
+        adobeEvents: ['productDetails20', 'event50']
+      });
+
+      handlePageEvent({
+        selector: '.product-list-page-container',
+        eventName: 'search-request-sent',
+        adobeEvents: ['category20', 'event50']
+      });
+
+      handlePageEvent({
+        selector: '.commerce-cart',
+        eventName: 'shopping-cart-view',
+        adobeEvents: ['cart20', 'event50']
+      });
+      handlePageEvent({
+        selector: '.order-confirmation',
+        eventName: 'place-order',
+        adobeEvents: ['purchase20', 'event50']
+      });
+    
+      handlePageEvent({
+        selector: '.commerce-checkout',
+        eventName: 'page-view',
+        adobeEvents: ['checkout20', 'event50']
+      });
+
+    });
+  } else {
+    setTimeout(initAdobePageTracking, 300); // Retry if adobeDataLayer not defined
+  }
+
+  // 🔁 Reusable page event listener function
+  function handlePageEvent({ selector, eventName, adobeEvents }) {
+    if (!document.body.querySelector(selector)) return;
+
+    const eventAlreadyFired = adobeDataLayer.some(
+      (entry) => entry.event === eventName
+    );
+
+    if (eventAlreadyFired) {
+      adobeEvents.forEach(triggerAdobeEvent);
+    } else {
+      const listener = function (e) {
+        if (e.event === eventName) {
+          adobeEvents.forEach(triggerAdobeEvent);
+          adobeDataLayer.removeEventListener('event', listener);
+        }
+      };
+      adobeDataLayer.addEventListener(eventName, listener);
+    }
+  }
+
+  // 🚀 Adobe Launch event trigger utility
+  function triggerAdobeEvent(eventName, maxAttempts = 10, interval = 300) {
+    (function retryTrack(attemptsLeft) {
+      if (typeof _satellite !== "undefined" && _satellite.track) {
+        _satellite.track(eventName);
+        console.log(`Adobe Launch event "${eventName}" fired.`);
+      } else if (attemptsLeft > 0) {
+        setTimeout(() => retryTrack(attemptsLeft - 1), interval);
+      } else {
+        console.warn(`_satellite.track("${eventName}") was not available.`);
+      }
+    })(maxAttempts);
+  }
+})();
+
+
 // Function to push user information into Adobe Data Layer
 async function pushUserDataToDataLayer() {
   try {
@@ -37,6 +120,9 @@ async function pushUserDataToDataLayer() {
           firstname: userInfo.firstname,
           lastname: userInfo.lastname,
           userEmail: userInfo.email,
+          dob:userInfo.date_of_birth,
+          gender:userInfo.gender == 1 ? 'Male':'Female',
+          age:userInfo.custom_attributes.find(attr => attr.code === "ageofcustomer")?.value,
           userId:encodeBase64Email(userInfo.email)
         },
       });
@@ -223,7 +309,7 @@ async function loadEager(doc) {
   let pageType = 'CMS';
   if (document.body.querySelector('main .product-details')) {
     pageType = 'Product';
-
+    //triggerAdobeEvent("productDetails20");
     // initialize pdp
     await import('./initializers/pdp.js');
 
@@ -246,16 +332,18 @@ async function loadEager(doc) {
     pageType = 'Category';
     const plpBlock = document.body.querySelector('main .product-list-page-custom');
     const { category, urlpath } = readBlockConfig(plpBlock);
-
     if (category && urlpath) {
       // eslint-disable-next-line import/no-unresolved, import/no-absolute-path
       const { preloadCategory } = await import('/blocks/product-list-page-custom/product-list-page-custom.js');
       preloadCategory({ id: category, urlPath: urlpath });
     }
-  } else if (document.body.querySelector('main .commerce-cart')) {
+  } 
+  else if (document.body.querySelector('main .commerce-cart')) {
     pageType = 'Cart';
+   // triggerAdobeEvent("cart20");
   } else if (document.body.querySelector('main .commerce-checkout')) {
     pageType = 'Checkout';
+    //triggerAdobeEvent("checkout20");
   }
 
   window.adobeDataLayer.push(
